@@ -15,6 +15,21 @@
 // v                                       v
 double* load_vector(const char* filename, int* out_size);
 
+typedef struct {
+    double *a, *b;
+    int start, size, jump;
+} params_t;
+
+void *thread(void *params){
+    params_t *arg = (params_t*)params;
+    double *sum = (double*)malloc(sizeof(double));
+    *sum = 0.0;
+    for (int i = arg->start; i < arg->size; i += arg->jump){
+        *sum += arg->a[i] * arg->b[i];
+    }
+    free(arg);
+    pthread_exit((void*)sum);
+}
 
 // Avalia se o prod_escalar é o produto escalar dos vetores a e b. Assume-se
 // que ambos a e b sejam vetores de tamanho size.
@@ -58,11 +73,28 @@ int main(int argc, char* argv[]) {
         printf("Vetores a e b tem tamanhos diferentes! (%d != %d)\n", a_size, b_size);
         return 1;
     }
+    if (n_threads > a_size) {
+        n_threads = a_size;
+    }
+    pthread_t ths[n_threads];
 
     //Calcula produto escalar. Paralelize essa parte
-    double result = 0;
-    for (int i = 0; i < a_size; ++i) 
-        result += a[i] * b[i];
+    double result = 0.0;
+    for (int i = 0; i < n_threads; i++) {
+        params_t *p = (params_t *)malloc(sizeof(params_t));
+        p->a = a;
+        p->b = b;
+        p->start = i;
+        p->size = a_size;
+        p->jump = n_threads;
+        pthread_create(&ths[i], NULL, thread, (void *)p);
+    }
+    for (int i = 0; i < n_threads; i++) {
+        void *sum = NULL;
+        pthread_join(ths[i], &sum);
+        result += *(double*)sum;
+        free(sum);
+    }
     
     //    +---------------------------------+
     // ** | IMPORTANTE: avalia o resultado! | **

@@ -67,9 +67,9 @@ double* load_vector(const char* filename, int* out_size) {
 // tenham tamanho size. Se silent for diferente de zero, não irá imprimir
 // resultado na tela
 void avaliar(double* a, double* b, double* c, int size) {
-    for (int i = 0; i < size; ++i) 
-        printf("%s%g", i ? " " : "", c[i]);
-    printf("\n");
+    // for (int i = 0; i < size; ++i) 
+    //     printf("%s%g", i ? " " : "", c[i]);
+    // printf("\n");
     int diffs = 0;
     for (int i = 0; i < size; ++i) 
         diffs += a[i] + b[i] != c[i];
